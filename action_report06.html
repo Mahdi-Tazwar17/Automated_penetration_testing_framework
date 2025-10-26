@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Web Application Exploitation and Validation Plan — testphp.vulnweb.com</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body { font-family: Arial, Helvetica, sans-serif; color:#222; line-height:1.45; margin:24px; }
+  h1,h2,h3 { margin: 0.6em 0 0.4em; }
+  p, li { font-size: 14px; }
+  .meta { color:#444; }
+  .badge { font-size:12px; padding:2px 8px; border-radius:10px; color:#fff; margin-left:6px; vertical-align:middle; }
+  .sev-critical { background:#c62828; }
+  .sev-high { background:#d84315; }
+  .sev-medium { background:#ef6c00; }
+  .sev-low { background:#6d6d6d; }
+  .section { border:1px solid #e5e5e5; border-radius:6px; padding:14px 16px; margin:18px 0; background:#fafafa; }
+  ul { margin:6px 0 6px 18px; }
+  ol { margin:8px 0 8px 22px; }
+  code { background:#f2f2f2; padding:0 3px; border-radius:3px; }
+  .small { font-size:12px; color:#555; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Exploitation & Validation Action Plan</h1>
+  <p class="meta">
+    Target: <strong>testphp.vulnweb.com</strong> (IP: 44.228.249.3) • Stack: Nginx/1.19.0, PHP/5.6.40 (Ubuntu) • Open Ports: 80 (HTTP), 53 (DNS) • TLS: Not supported • WAF: Not detected
+  </p>
+</header>
+
+<section class="section">
+  <h2>Executive Summary</h2>
+  <p>This document provides an authorized, manual, step-by-step plan for validating and safely exploiting identified web application issues on testphp.vulnweb.com. Each section includes objectives, preconditions, manual steps, evidence to collect, safe actions, remediation, and post-fix verification.</p>
+  <h3>Identified Findings</h3>
+  <ul>
+    <li>Multiple Cross-Site Scripting (XSS) vectors <span class="badge sev-critical">Critical</span></li>
+    <li>SQL Injection (classic and time-based blind) across several endpoints <span class="badge sev-critical">Critical</span></li>
+    <li>Local File Inclusion / Path Traversal in <code>showimage.php</code> <span class="badge sev-critical">Critical</span></li>
+    <li>Accessible backup files (<code>/index.bak</code>, <code>/index.zip</code>) <span class="badge sev-high">High</span></li>
+    <li>Weak credentials (test/test) accepted at login <span class="badge sev-high">High</span></li>
+    <li>No SSL/TLS support (HTTP-only) <span class="badge sev-high">High</span></li>
+    <li>CSRF protections absent on multiple POST endpoints <span class="badge sev-medium">Medium</span></li>
+    <li>Exposed directories and metadata files (CVS) <span class="badge sev-medium">Medium</span></li>
+    <li>Missing CSP and other security headers; permissive crossdomain/clientaccesspolicy <span class="badge sev-medium">Medium</span></li>
+  </ul>
+  <p class="small">Note: PHP 5.6 is end-of-life; combined with no TLS and missing headers, overall risk is elevated. DNS (port 53) open on the same host is noted but out of scope for web-layer exploitation.</p>
+</section>
+
+<!-- 1. Exposed Directories / Files -->
+<section class="section">
+  <h2>Exposed Directories and Files (Enumeration / Sensitive Artifacts) <span class="badge sev-medium">Medium</span></h2>
+  <p><strong>Objective:</strong> Determine if exposed directories and files leak sensitive information or enable lateral exploitation. Assess access controls and indexing.</p>
+  <p><strong>Objective:</strong> Confirm presence and content of CVS metadata, admin areas, and other listed paths.</p>
+  <h3>Preconditions</h3>
+  <ul>
+    <li>Base URL: <a href="http://testphp.vulnweb.com" target="_blank" rel="noopener">http://testphp.vulnweb.com</a></li>
+    <li>Endpoints: <code>/admin/</code>, <code>/cgi-bin/</code>, <code>/crossdomain.xml</code>, <code>/CVS</code>, <code>/CVS/Entries</code>, <code>/CVS/Repository</code>, <code>/CVS/Root</code>, <code>/images/</code>, <code>/pictures/</code>, <code>/secured/</code>, <code>/vendor/</code>, <code>/index.php</code></li>
+    <li>Tools: Web browser, curl, recording of HTTP request/response.</li>
+  </ul>
+  <h3>Manual Validation Steps</h3>
+  <ol>
+    <li>Confirm explicit written authorization and change window before probing directories.</li>
+    <li>Browse to each listed path and observe HTTP codes, redirects, and directory listings (autoindex enabled/disabled).</li>
+    <li>For <code>/admin/</code> and <code>/secured/</code>, check for login prompts, default creds, or exposed admin panels without auth.</li>
+    <li>Access <code>/CVS/Entries</code>, <code>/CVS/Repository</code>, and <code>/CVS/Root</code> to identify repository paths, file names, or credentials in comments.</li>
+    <li>Review <code>/vendor/</code> for dependency manifests, versions, or exposed package sources.</li>
+    <li>Confirm <code>/cgi-bin/</code> returns 403 and cannot be bypassed (try trailing slashes, case variations, and <code>/.</code> suffix test).</li>
+    <li>Manually review <code>/crossdomain.xml</code> for wildcards permitting third-party origins.</li>
+    <li>Note any sensitive file exposures (config, keys, archives) and limit downloads to minimal proof content.</li>
+  </ol>
+  <h3>Evidence to Collect</h3>
+  <ul>
+    <li>HTTP status codes and screenshots of listings or exposed content.</li>
+    <li>Contents of CVS files and crossdomain policy (snippets, not full data).</li>
+    <li>Response headers showing server config.</li>
+  </ul>
+  <h3>Safe Post-Validation Actions</h3>
+  <ul>
+    <li>Avoid altering server state; do not upload/modify content.</li>
+    <li>Document and cease enumeration upon sensitive data discovery.</li>
+  </ul>
+  <h3>Remediation Summary</h3>
+  <ul>
+    <li>Disable directory listing; restrict <code>/admin</code>, <code>/secured</code>, <code>/vendor</code> via auth and IP allowlists.</li>
+    <li>Remove CVS metadata and any exposed repository artifacts from web root.</li>
+    <li>Harden policy files; limit origins.</li>
+  </ul>
+  <h3>Post-Fix Verification</h3>
+  <ul>
+    <li>All listed paths return 403 or appropriate index without sensitive data.</li>
+    <li>No autoindex; CVS files not accessible.</li>
+    <li>crossdomain policy is least-privilege.</li>
+  </ul>
+</section>
+
+<!-- 2. XSS -->
+<section class="section">
+  <h2>Cross-Site Scripting (Reflected/Stored) <span class="badge sev-critical">Critical</span></h2>
+  <p><strong>Objective:</strong> Confirm execution of untrusted script via reflected and stored vectors without CSP/filters.</p>
+  <p><strong>Objective:</strong> Assess scope (user vs. admin), contexts, and sanitization gaps.</p>
+  <h3>Preconditions</h3>
+  <ul>
+    <li>Endpoints:
+      <ul>
+        <li>GET: <code>/listproducts.php?cat=</code>, <code>/product.php?pic=</code>, <code>/showimage.php?file=</code>, <code>/artists.php?artist=</code>, <code>/listproducts.php?artist=</code>, <code>/hpp/?pp=</code>, <code>/hpp/params.php?p=</code></li>
+        <li>POST: <code>/search.php?test=query</code> (<code>searchFor</code>), <code>/guestbook.php</code> (<code>name</code>/<code>text</code>), <code>/secured/newuser.php</code> (multiple fields)</li>
+      </ul>
+    </li>
+    <li>Browser with devtools; test payloads (harmless): <code>&lt;svg onload=alert(1)&gt;</code>, <code>" onmouseover="alert(1)</code></li>
+  </ul>
+  <h3>Manual Validation Steps</h3>
+  <ol>
+    <li>Confirm authorization and ensure testing accounts are non-privileged.</li>
+    <li>For each GET vector, inject a benign marker payload and observe if a JavaScript dialog executes or payload reflects unsanitized.</li>
+    <li>Inspect HTML source to confirm injection context (HTML, attribute, JavaScript, URL) and whether encoding is absent.</li>
+    <li>For POST vectors, submit payloads; if stored (e.g., guestbook), revisit the page to verify persistent execution.</li>
+    <li>Test alternate payloads that avoid filters (e.g., <code>&lt;img src=x onerror=alert(1)&gt;</code>, attribute breaks) and double-encoding if needed.</li>
+    <li>Check cookies for <code>HttpOnly</code>/<code>Secure</code> flags; note absence increases impact.</li>
+    <li>Confirm no CSP header is present on responses to demonstrate exploitability breadth.</li>
+  </ol>
+  <h3>Evidence to Collect</h3>
+  <ul>
+    <li>Request/response pairs showing payload reflection and DOM execution.</li>
+    <li>Screenshots of executed payloads and response headers (no CSP, missing security flags).</li>
+  </ul>
+  <h3>Safe Post-Validation Actions</h3>
+  <ul>
+    <li>Remove test entries (guestbook/user) if feasible; log out test sessions.</li>
+    <li>Share payloads used to allow precise patching.</li>
+  </ul>
+  <h3>Remediation Summary</h3>
+  <ul>
+    <li>Apply contextual output encoding; validate/whitelist parameters.</li>
+    <li>Set a restrictive CSP; add <code>HttpOnly</code>/<code>Secure</code> cookies.</li>
+  </ul>
+  <h3>Post-Fix Verification</h3>
+  <ul>
+    <li>Payloads render inert text; no script execution.</li>
+    <li>CSP blocks inline/eval; headers present and correct.</li>
+  </ul>
+</section>
+
+<!-- 3. Nikto Misconfig -->
+<section class="section">
+  <h2>Server Misconfiguration and Insecure Policy Files (Nikto) <span class="badge sev-medium">Medium</span></h2>
+  <p><strong>Objective:</strong> Validate missing headers and permissive policy files that enable clickjacking, MIME sniffing, and cross-domain data access.</p>
+  <p><strong>Objective:</strong> Confirm exposure of detailed version info via headers.</p>
+  <h3>Preconditions</h3>
+  <ul>
+    <li>Endpoints: <code>/</code>, <code>/clientaccesspolicy.xml</code>, <code>/crossdomain.xml</code></li>
+    <li>Tools: curl/browser to view response headers and policy content.</li>
+  </ul>
+  <h3>Manual Validation Steps</h3>
+  <ol>
+    <li>Confirm authorization; restrict to read-only requests.</li>
+    <li>Request <code>/</code> and inspect for <code>X-Frame-Options</code>, <code>X-Content-Type-Options</code>; note absence.</li>
+    <li>Open <code>/crossdomain.xml</code> and confirm wildcard entries (e.g., <code>&lt;allow-access-from domain="*" /&gt;</code>).</li>
+    <li>Open <code>/clientaccesspolicy.xml</code> and confirm permissive rules and wildcards.</li>
+    <li>Record <code>Server</code> and <code>X-Powered-By</code> headers revealing versions.</li>
+    <li>Assess risk of data access via Flash/Silverlight policy in context of app features.</li>
+  </ol>
+  <h3>Evidence to Collect</h3>
+  <ul>
+    <li>Response headers and policy file snippets showing wildcards/missing headers.</li>
+  </ul>
+  <h3>Safe Post-Validation Actions</h3>
+  <ul>
+    <li>No changes performed; share findings with minimal copied content.</li>
+  </ul>
+  <h3>Remediation Summary</h3>
+  <ul>
+    <li>Add <code>X-Frame-Options: DENY</code> or CSP frame-ancestors; <code>X-Content-Type-Options: nosniff</code>.</li>
+    <li>Remove or restrict <code>crossdomain.xml</code>/<code>clientaccesspolicy.xml</code> to trusted origins only.</li>
+    <li>Minimize version disclosure; remove <code>X-Powered-By</code>.</li>
+  </ul>
+  <h3>Post-Fix Verification</h3>
+  <ul>
+    <li>Headers present and effective; policy files tightened or removed.</li>
+  </ul>
+</section>
+
+<!-- 4. Backup files -->
+<section class="section">
+  <h2>Accessible Backup Files <span class="badge sev-high">High</span></h2>
+  <p><strong>Objective:</strong> Validate unauthenticated access to backup artifacts and assess content sensitivity.</p>
+  <p><strong>Objective:</strong> Determine if code/config secrets are exposed.</p>
+  <h3>Preconditions</h3>
+  <ul>
+    <li>Endpoints: <code>/index.bak</code>, <code>/index.zip</code> (from <code>/index.php</code>)</li>
+    <li>Tools: Browser/curl, checksum tool, secure storage for minimal samples.</li>
+  </ul>
+  <h3>Manual Validation Steps</h3>
+  <ol>
+    <li>Confirm authorization; limit downloads to smallest necessary sample.</li>
+    <li>Request <code>/index.bak</code>; verify HTTP 200 and content type; preview initial lines only.</li>
+    <li>Request <code>/index.zip</code>; confirm listing and extract minimally in a controlled environment.</li>
+    <li>Search the files for credentials, DB hosts, API keys, comments referencing admin endpoints.</li>
+    <li>Compare code with live behavior to estimate exploitability (e.g., SQL queries, input handling).</li>
+    <li>Securely delete local copies after evidence capture per policy.</li>
+  </ol>
+  <h3>Evidence to Collect</h3>
+  <ul>
+    <li>HTTP responses, file hashes, limited screenshots/snippets of sensitive sections.</li>
+  </ul>
+  <h3>Safe Post-Validation Actions</h3>
+  <ul>
+    <li>Do not modify server files; maintain chain-of-custody for any samples.</li>
+  </ul>
+  <h3>Remediation Summary</h3>
+  <ul>
+    <li>Remove backup files from web root; implement deny patterns for <code>*.bak</code>, <code>*.zip</code>.</li>
+    <li>Adopt secure build/deploy processes that exclude artifacts.</li>
+  </ul>
+  <h3>Post-Fix Verification</h3>
+  <ul>
+    <li>Backup endpoints return 404/403; web root is free from artifacts.</li>
+  </ul>
+</section>
+
+<!-- 5. Blind SQLi -->
+<section class="section">
+  <h2>Blind SQL Injection (Time-Based) <span class="badge sev-critical">Critical</span></h2>
+  <p><strong>Objective:</strong> Confirm time-based responses indicate injectable parameters across listed endpoints.</p>
+  <p><strong>Objective:</strong> Measure delay deltas and validate DBMS behavior without extracting data.</p>
+  <h3>Preconditions</h3>
+  <ul>
+    <li>Endpoints:
+      <ul>
+        <li>GET: <code>/artists.php?artist=</code>, <code>/listproducts.php?cat=</code>, <code>/listproducts.php?artist=</code>, <code>/product.php?pic=</code></li>
+        <li>POST: <code>/cart.php</code> (<code>addcart</code>), <code>/search.php?test=query</code> (<code>searchFor</code>), <code>/secured/newuser.php</code> (<code>uuname</code>), <code>/userinfo.php</code> (<code>uname</code>/<code>pass</code>)</li>
+      </ul>
+    </li>
+    <li>Timing tool/stopwatch; stable network connection.</li>
+  </ul>
+  <h3>Manual Validation Steps</h3>
+  <ol>
+    <li>Confirm authorization; coordinate to avoid impacting production SLAs.</li>
+    <li>Establish baseline response time for each endpoint using benign input (3–5 samples).</li>
+    <li>Send payloads introducing delay (e.g., <code>sleep(7)</code>) in each parameter; measure response time increase.</li>
+    <li>Repeat with control payload (e.g., <code>sleep(0)</code>) to rule out network variance.</li>
+    <li>Test boolean time conditions (e.g., <code>IF(1=1,SLEEP(5),0)</code> vs. <code>IF(1=2,SLEEP(5),0)</code>) to strengthen confirmation.</li>
+    <li>Record any functional changes or errors; avoid data extraction beyond minimal confirmation.</li>
+  </ol>
+  <h3>Evidence to Collect</h3>
+  <ul>
+    <li>Timing tables (baseline vs. injected), raw requests/responses, server headers.</li>
+  </ul>
+  <h3>Safe Post-Validation Actions</h3>
+  <ul>
+    <li>Throttle tests; stop on performance degradation; inform stakeholders.</li>
+  </ul>
+  <h3>Remediation Summary</h3>
+  <ul>
+    <li>Use parameterized queries/ORM; strict input validation; least-privileged DB accounts.</li>
+    <li>Centralize error handling to avoid clues; add WAF/filters as compensating control.</li>
+  </ul>
+  <h3>Post-Fix Verification</h3>
+  <ul>
+    <li>Injected delays no longer affect response time; SAST/DAST clean for SQLi.</li>
+  </ul>
+</section>
+
+<!-- 6. Weak Credentials -->
+<section class="section">
+  <h2>Weak Credentials Accepted (test/test) <span class="badge sev-high">High</span></h2>
+  <p><strong>Objective:</strong> Validate that trivial credentials grant access and assess resulting authorization.</p>
+  <p><strong>Objective:</strong> Determine session handling robustness post-login.</p>
+  <h3>Preconditions</h3>
+  <ul>
+    <li>Login page: <code>/login.php</code> (POST to <code>/userinfo.php</code>)</li>
+    <li>Test account: <code>test/test</code> (as discovered)</li>
+  </ul>
+  <h3>Manual Validation Steps</h3>
+  <ol>
+    <li>Confirm authorization; use dedicated test workstation.</li>
+    <li>Log in with <code>test/test</code> and observe success message or dashboard.</li>
+    <li>Capture session cookie flags (<code>HttpOnly</code>, <code>Secure</code>) and session fixation behavior.</li>
+    <li>Attempt access to protected routes and functions to gauge privilege.</li>
+    <li>Log out and confirm session invalidation; test reuse of cookie post-logout.</li>
+    <li>Record any horizontal/vertical access control gaps.</li>
+  </ol>
+  <h3>Evidence to Collect</h3>
+  <ul>
+    <li>Login response, session cookies, screenshots of authenticated areas.</li>
+  </ul>
+  <h3>Safe Post-Validation Actions</h3>
+  <ul>
+    <li>Log out; avoid data changes; do not elevate privileges.</li>
+  </ul>
+  <h3>Remediation Summary</h3>
+  <ul>
+    <li>Enforce password policy, account lockout, and MFA where applicable.</li>
+    <li>Disable default/test accounts; monitor for weak-password attempts.</li>
+  </ul>
+  <h3>Post-Fix Verification</h3>
+  <ul>
+    <li><code>test/test</code> rejected; lockout triggers after threshold; MFA enforced.</li>
+  </ul>
+</section>
+
+<!-- 7. CSP Missing -->
+<section class="section">
+  <h2>Content Security Policy Not Set <span class="badge sev-medium">Medium</span></h2>
+  <p><strong>Objective:</strong> Confirm absence of CSP header increases XSS exploitability.</p>
+  <p><strong>Objective:</strong> Establish a baseline for header hardening.</p>
+  <h3>Preconditions</h3>
+  <ul>
+    <li>Endpoint: <code>/</code></li>
+  </ul>
+  <h3>Manual Validation Steps</h3>
+  <ol>
+    <li>Confirm authorization to review headers.</li>
+    <li>Request <code>/</code> and capture response headers; verify no <code>Content-Security-Policy</code>.</li>
+    <li>Attempt inline script execution to demonstrate lack of CSP blocking.</li>
+    <li>Record any existing related headers (e.g., <code>Referrer-Policy</code>, <code>Permissions-Policy</code>).</li>
+    <li>Note third-party domains in use to inform CSP design.</li>
+    <li>Document minimal CSP proposal (default-src 'self').</li>
+  </ol>
+  <h3>Evidence to Collect</h3>
+  <ul>
+    <li>Header capture, PoC showing inline script execution not blocked.</li>
+  </ul>
+  <h3>Safe Post-Validation Actions</h3>
+  <ul>
+    <li>None required; read-only validation.</li>
+  </ul>
+  <h3>Remediation Summary</h3>
+  <ul>
+    <li>Implement CSP with nonces/hashes; restrict sources and frames.</li>
+  </ul>
+  <h3>Post-Fix Verification</h3>
+  <ul>
+    <li>CSP present; inline/eval blocked; app functions as expected with CSP enabled.</li>
+  </ul>
+</section>
+
+<!-- 8. CSRF -->
+<section class="section">
+  <h2>Cross-Site Request Forgery (Missing Anti-CSRF) <span class="badge sev-medium">Medium</span></h2>
+  <p><strong>Objective:</strong> Validate that state-changing POST endpoints accept requests without CSRF tokens.</p>
+  <p><strong>Objective:</strong> Demonstrate exploitability within an authenticated browser session.</p>
+  <h3>Preconditions</h3>
+  <ul>
+    <li>Endpoints: <code>/cart.php</code>, <code>/guestbook.php</code>, <code>/search.php?test=query</code>, <code>/secured/newuser.php</code>, <code>/userinfo.php</code></li>
+    <li>Test account session where applicable.</li>
+  </ul>
+  <h3>Manual Validation Steps</h3>
+  <ol>
+    <li>Confirm authorization and ensure use of an isolated browser profile.</li>
+    <li>Authenticate (if required), then craft minimal HTML form PoCs targeting each endpoint without CSRF token.</li>
+    <li>Load PoC locally in the same browser session and submit automatically (e.g., <code>&lt;body onload="form.submit()"&gt;</code>).</li>
+    <li>Observe server response and application state changes (cart updated, guestbook entry added, account created).</li>
+    <li>Repeat with incorrect/missing Referer to see if any origin checks exist.</li>
+    <li>Document any endpoints where actions succeed unauthenticated (additional risk).</li>
+  </ol>
+  <h3>Evidence to Collect</h3>
+  <ul>
+    <li>PoC HTML, network traces, screenshots showing state change.</li>
+  </ul>
+  <h3>Safe Post-Validation Actions</h3>
+  <ul>
+    <li>Revert or delete test-created records; log out sessions.</li>
+  </ul>
+  <h3>Remediation Summary</h3>
+  <ul>
+    <li>Implement anti-CSRF tokens (per-request), SameSite cookies, and origin/Referer checks.</li>
+  </ul>
+  <h3>Post-Fix Verification</h3>
+  <ul>
+    <li>PoCs fail with 403; tokens required and validated; SameSite=Lax/Strict set.</li>
+  </ul>
+</section>
+
+<!-- 9. Path Traversal / LFI -->
+<section class="section">
+  <h2>Path Traversal / Local File Inclusion in showimage.php <span class="badge sev-critical">Critical</span></h2>
+  <p><strong>Objective:</strong> Confirm arbitrary file read via <code>file</code> parameter (absolute and local source disclosure).</p>
+  <p><strong>Objective:</strong> Determine extent of filesystem exposure and constraints.</p>
+  <h3>Preconditions</h3>
+  <ul>
+    <li>Endpoints: <code>/showimage.php?file=/etc/passwd</code>, <code>/showimage.php?file=showimage.php</code> (with/without <code>&size=160</code>)</li>
+  </ul>
+  <h3>Manual Validation Steps</h3>
+  <ol>
+    <li>Confirm authorization; avoid requesting large or sensitive datasets.</li>
+    <li>Request <code>/showimage.php?file=/etc/passwd</code> and check for typical passwd patterns (<code>root:x:</code>).</li>
+    <li>Request <code>/showimage.php?file=showimage.php</code> and confirm source code disclosure.</li>
+    <li>Try basic traversal patterns (e.g., <code>../../../../etc/passwd</code>) if absolute paths are blocked.</li>
+    <li>Observe response headers (content-type) and error handling to assess filter strength.</li>
+    <li>Cease testing upon confirmation to limit data exposure.</li>
+  </ol>
+  <h3>Evidence to Collect</h3>
+  <ul>
+    <li>Small response excerpts showing file contents, request/response logs.</li>
+  </ul>
+  <h3>Safe Post-Validation Actions</h3>
+  <ul>
+    <li>Do not store retrieved files; report minimal proof excerpts only.</li>
+  </ul>
+  <h3>Remediation Summary</h3>
+  <ul>
+    <li>Whitelist allowed files; use indirect references (IDs) and server-side mapping.</li>
+    <li>Disable direct path usage; enforce <code>open_basedir</code> and path normalization.</li>
+  </ul>
+  <h3>Post-Fix Verification</h3>
+  <ul>
+    <li>Requests for arbitrary paths return safe errors; only permitted images are served.</li>
+  </ul>
+</section>
+
+<!-- 10. HTTP Secure Headers -->
+<section class="section">
+  <h2>Missing HTTP Security Headers <span class="badge sev-medium">Medium</span></h2>
+  <p><strong>Objective:</strong> Validate absence of recommended headers reducing browser-layer protections.</p>
+  <p><strong>Objective:</strong> Provide baseline for header hardening, acknowledging TLS is absent.</p>
+  <h3>Preconditions</h3>
+  <ul>
+    <li>Endpoint: <code>/</code></li>
+    <li>Headers flagged: <code>X-Frame-Options</code>, <code>X-XSS-Protection</code>, <code>X-Content-Type-Options</code>, <code>Strict-Transport-Security</code></li>
+  </ul>
+  <h3>Manual Validation Steps</h3>
+  <ol>
+    <li>Confirm authorization; capture response headers for <code>/</code>.</li>
+    <li>Verify each header’s absence and note potential impact (clickjacking, sniffing, legacy XSS filters, HSTS).</li>
+    <li>Attempt basic clickjacking frame PoC to demonstrate <code>X-Frame-Options</code> risk.</li>
+    <li>Attempt MIME sniffing scenario by requesting content with ambiguous types, if applicable.</li>
+    <li>Document that HSTS cannot be applied until TLS is enabled.</li>
+    <li>Draft recommended header set aligned with app needs.</li>
+  </ol>
+  <h3>Evidence to Collect</h3>
+  <ul>
+    <li>Header capture, PoC screenshots (framing), notes on MIME behavior.</li>
+  </ul>
+  <h3>Safe Post-Validation Actions</h3>
+  <ul>
+    <li>None; tests are read-only or PoC in local frame.</li>
+  </ul>
+  <h3>Remediation Summary</h3>
+  <ul>
+    <li>Add <code>X-Frame-Options</code> or CSP frame-ancestors, <code>X-Content-Type-Options: nosniff</code>, appropriate <code>Referrer-Policy</code>, <code>Permissions-Policy</code>.</li>
+    <li>Enable TLS, then enforce <code>Strict-Transport-Security</code>.</li>
+  </ul>
+  <h3>Post-Fix Verification</h3>
+  <ul>
+    <li>Headers present and effective; framing blocked; sniffing disabled.</li>
+  </ul>
+</section>
+
+<!-- 11. Classic SQLi -->
+<section class="section">
+  <h2>SQL Injection (Classic/Error/Boolean-Based) <span class="badge sev-critical">Critical</span></h2>
+  <p><strong>Objective:</strong> Validate classic SQL injection vectors hinted by scanner payloads across multiple parameters.</p>
+  <p><strong>Objective:</strong> Determine DBMS behavior (MySQL) and confirm injection without extracting sensitive data.</p>
+  <h3>Preconditions</h3>
+  <ul>
+    <li>Endpoints:
+      <ul>
+        <li>GET: <code>/artists.php?artist=</code>, <code>/listproducts.php?cat=</code>, <code>/listproducts.php?artist=</code>, <code>/product.php?pic=</code>, <code>/search.php?test=query</code></li>
+        <li>POST: <code>/search.php?test=query</code> (<code>searchFor</code>), <code>/secured/newuser.php</code> (<code>uuname</code>), <code>/userinfo.php</code> (<code>uname</code>/<code>pass</code>)</li>
+      </ul>
+    </li>
+    <li>Test payloads: <code>'</code>, <code>"</code>, <code>)</code>, <code>OR 1=1</code>, boolean/time-based variants.</li>
+  </ul>
+  <h3>Manual Validation Steps</h3>
+  <ol>
+    <li>Confirm authorization; avoid UNION data extraction.</li>
+    <li>Inject single-quote and observe SQL error messages or response anomalies (length/content changes).</li>
+    <li>Test boolean logic (<code>AND 1=1</code> vs. <code>AND 1=2</code>) and compare page differences.</li>
+    <li>If errors suppressed, use time-based checks (<code>SLEEP(5)</code>) to confirm injection.</li>
+    <li>Attempt limited version fingerprinting (<code>SELECT @@version</code>) only if safe and permitted.</li>
+    <li>Document parameters confirmed vulnerable with minimal reproducible PoCs.</li>
+  </ol>
+  <h3>Evidence to Collect</h3>
+  <ul>
+    <li>Request/response comparisons, timing deltas, any SQL error excerpts, parameter list.</li>
+  </ul>
+  <h3>Safe Post-Validation Actions</h3>
+  <ul>
+    <li>Stop upon confirmation; do not dump data; notify stakeholders.</li>
+  </ul>
+  <h3>Remediation Summary</h3>
+  <ul>
+    <li>Use prepared statements; input validation; WAF rules for known patterns.</li>
+    <li>Centralize DB access and sanitize ORM usage.</li>
+  </ul>
+  <h3>Post-Fix Verification</h3>
+  <ul>
+    <li>Quotes and boolean payloads no longer alter responses; SAST/DAST clean.</li>
+  </ul>
+</section>
+
+<!-- 12. TLS -->
+<section class="section">
+  <h2>No SSL/TLS Support (HTTP-Only) <span class="badge sev-high">High</span></h2>
+  <p><strong>Objective:</strong> Confirm lack of TLS leads to transport-layer exposure of credentials and sessions.</p>
+  <p><strong>Objective:</strong> Establish steps to validate after TLS enablement.</p>
+  <h3>Preconditions</h3>
+  <ul>
+    <li>Host: <code>http://testphp.vulnweb.com</code> (scanner reported TLS timeout/unsupported)</li>
+  </ul>
+  <h3>Manual Validation Steps</h3>
+  <ol>
+    <li>Confirm authorization and non-production data use.</li>
+    <li>Attempt <code>https://testphp.vulnweb.com</code>; verify failure/timeouts.</li>
+    <li>Log in over HTTP with test creds and capture that credentials travel in cleartext on the network path (lab or local proxy).</li>
+    <li>Check cookies lack <code>Secure</code> flag due to HTTP-only.</li>
+    <li>Note mixed-content and HSTS impossibility in current state.</li>
+    <li>Document risk scenarios (session hijacking on shared networks).</li>
+  </ol>
+  <h3>Evidence to Collect</h3>
+  <ul>
+    <li>Connection attempt logs to HTTPS, headers showing no HSTS, proxy trace of HTTP auth request (sanitized).</li>
+  </ul>
+  <h3>Safe Post-Validation Actions</h3>
+  <ul>
+    <li>Avoid real user data; cease testing after confirmation.</li>
+  </ul>
+  <h3>Remediation Summary</h3>
+  <ul>
+    <li>Enable TLS (modern ciphers); redirect HTTP→HTTPS; set HSTS with preload after validation.</li>
+  </ul>
+  <h3>Post-Fix Verification</h3>
+  <ul>
+    <li>HTTPS reachable; strong cipher suites; Secure cookies; HSTS enforced.</li>
+  </ul>
+</section>
+
+<!-- Retest and Closure -->
+<section class="section">
+  <h2>Retest & Closure Checklist</h2>
+  <ul>
+    <li>Authorization reconfirmed; change window approved for retest.</li>
+    <li>XSS payloads inert; CSP effective; cookies hardened.</li>
+    <li>SQLi (classic and blind) payloads no longer affect responses/timing.</li>
+    <li>LFI/Path traversal blocked; only whitelisted files accessible.</li>
+    <li>Backup files removed; direct access returns 404/403.</li>
+    <li>Weak credentials disabled; password policy and MFA enforced.</li>
+    <li>CSRF tokens implemented; SameSite and origin checks in place.</li>
+    <li>Security headers present; crossdomain/clientaccesspolicy restricted.</li>
+    <li>TLS enabled; HSTS active; no mixed content; Secure/HttpOnly flags set.</li>
+    <li>All evidence archived; stakeholder sign-off obtained; testing artifacts purged.</li>
+  </ul>
+</section>
+
+<footer class="small">
+  Report prepared for authorized penetration testing of testphp.vulnweb.com. All actions must adhere to agreed scope and timeline.
+</footer>
+
+</body>
+</html>

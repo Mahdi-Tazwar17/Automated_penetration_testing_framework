@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Vulnerability Scan Report</title>
+<style>
+    :root{
+    --bg:#f4f4f4; --text:#2c3e50; --muted:#6b7280; --card:#ffffff;
+    --bd:#e5e7eb; --cri:#e1979d; --hi:#f8d7da; --med:#fff3cd; --lo:#d4edda;
+    --badge:#eef2f7; --badge-txt:#1f2937;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+    .container{width:90%;max-width:1200px;margin:24px auto;padding:24px;background:var(--card);border-radius:10px;box-shadow:0 2px 14px rgba(0,0,0,.08)}
+    h1{text-align:center;margin:0 0 18px}
+    h2{margin:26px 0 10px;border-bottom:2px solid var(--bd);padding-bottom:6px}
+    h3{margin:18px 0 8px}
+    h4{margin:0 0 10px}
+    .section{margin-bottom:34px}
+    .muted{color:var(--muted)}
+
+    /* tables */
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{border:1px solid var(--bd);padding:10px;text-align:left;vertical-align:top}
+    th{background:#f7f7f8}
+    .severity-critical{background:var(--cri)}
+    .severity-high{background:var(--hi)}
+    .severity-medium{background:var(--med)}
+    .severity-low{background:var(--lo)}
+
+    /* recon list (only place where <li> is allowed) */
+    .targets ul{margin:10px 0 0 18px;padding:0}
+    .targets li{margin:4px 0}
+
+    /* detailed card aligned like the PDF */
+    .vuln-card{
+    border:1px solid var(--bd);
+    border-radius:10px;
+    margin:22px auto;
+    background:#fff;
+    padding:0;
+    max-width:900px;
+    box-shadow:0 1px 8px rgba(0,0,0,.05);
+    }
+    .vuln-header{
+    text-align:center;
+    padding:18px 16px 10px;
+    border-bottom:1px solid var(--bd);
+    }
+    .vuln-title{
+    margin:0 0 6px;
+    font-size:20px;
+    font-weight:700;
+    }
+    .vuln-meta{
+    display:block;
+    text-align:left;
+    margin:6px 0;
+    padding:0 20px;
+    }
+    .badge{
+    display:block;
+    padding:4px 10px;
+    margin:4px 0;
+    border-radius:6px;
+    background:var(--badge);
+    color:var(--badge-txt);
+    font-size:13px;
+    border:1px solid var(--bd);
+    }
+    .badge.critical{background:#cbaaaa}
+    .badge.high{background:#fbeaea}
+    .badge.medium{background:#fff6da}
+    .badge.low{background:#e9f7ea}
+
+    .vuln-body{padding:18px 20px 20px}
+    .vsection{
+    border:1px dashed var(--bd);
+    border-radius:8px;
+    padding:14px;
+    margin:14px 0;
+    background:#fafafa;
+    }
+    .vsection h5{
+    margin:0 0 8px;
+    font-size:14px;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+    color:#111;
+    }
+
+    .dot{position:relative;padding-left:14px;margin:6px 0}
+    .dot::before{content:"•";position:absolute;left:0;top:0;color:#111}
+
+    pre{
+    background:#0f172a;
+    color:#e5e7eb;
+    padding:12px;
+    border-radius:6px;
+    overflow:auto;
+    font-size:13px;
+    line-height:1.45;
+    margin:10px 0 0;
+    }
+
+    .anchor{scroll-margin-top:90px}
+    a{color:#0b5ed7;text-decoration:none}
+    a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Vulnerability Scan Report</h1>
+
+<div class="vuln-header">
+    <h2 style="margin:0;">Overall Security Status</h2>
+</div>
+<div class="vuln-body" style="
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    justify-content: center;
+    align-items: center;width: max-content;margin: 0 auto;">
+
+    <!-- Left: Rating -->
+    <div style="min-width:250px; text-align: center;">
+        <h2 style="margin:0 0 8px; font-size:1.4rem;">Security Risk Rating</h3>
+        <span class="badge critical" id="rating-badge" style="font-size:1.3rem; font-weight: 650;padding:12px 24px;">
+            Critical Risk
+        </span>
+    </div>
+
+    <!-- Right: Score -->
+    <div style="min-width:250px; text-align: center;">
+        <h2 style="margin:0 0 8px; font-size:1.4rem;">Security Score</h3>
+        <span class="badge critical" id="rating-badge" style="font-size:1.3rem; font-weight: 650;padding:12px 24px;">
+            11.3 / 100
+        </span>
+    </div>
+</div>
+
+<!-- =================== RECON =================== -->
+<div class="section">
+    <h2>Reconnaissance Findings</h2>
+
+    <div class="summary">
+    <h3>Summary of Findings</h3>
+    <p>
+        Main domain: testphp.vulnweb.com. Active subdomains found: 1 (testphp.vulnweb.com). Unique IPs: 1 (44.228.249.3). Open ports: 2 on 44.228.249.3 (53, 80). Technology stack: Ubuntu (OS), PHP 5.6.40, DreamWeaver, Nginx 1.19.0. WAF detection: None detected (7 requests). SSL/TLS: Not supported (Timeout).
+    </p>
+    </div>
+
+    <div class="targets">
+    <h3>Potential Targets</h3>
+    <ul>
+        <li>testphp.vulnweb.com - 44.228.249.3</li>
+    </ul>
+    <table>
+        <thead>
+        <tr>
+            <th>Domain</th>
+            <th>IP Address</th>
+            <th>Open Ports</th>
+            <th>Technologies</th>
+            <th>Firewall/WAF</th>
+        </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>testphp.vulnweb.com</td>
+                <td>44.228.249.3</td>
+                <td>53, 80</td>
+                <td>Ubuntu; PHP 5.6.40; Nginx 1.19.0; DreamWeaver</td>
+                <td>No WAF detected; SSL/TLS: Not supported</td>
+            </tr>
+        </tbody>
+    </table>
+    </div>
+</div>
+
+<!-- =================== VULNERABILITY ASSESSMENT =================== -->
+<div class="section">
+    <h2>Vulnerability Assessment</h2>
+
+    <div class="vulnerability-table">
+    <h3>Main Page Vulnerabilities</h3>
+    <table>
+        <thead>
+        <tr>
+            <th>Title</th>
+            <th>Severity</th>
+            <th>Vulnerability Type</th>
+            <th>CVSS Score</th>
+        </tr>
+        </thead>
+        <tbody>
+            <tr class="severity-medium">
+                <td><a href="#Directory_Path_Traversal_Exposes_Sensitive_Paths_and_Metadata">Directory Path Traversal Exposes Sensitive Paths and Metadata</a></td>
+                <td>Medium</td>
+                <td>Directory Path Traversal</td>
+                <td>5.9</td>
+            </tr>
+            <tr class="severity-high">
+                <td><a href="#Multiple_Cross-Site_Scripting_(XSS)_Vulnerabilities_Enable_Script_Injection">Multiple Cross-Site Scripting (XSS) Vulnerabilities Enable Script Injection</a></td>
+                <td>High</td>
+                <td>XSS</td>
+                <td>8.3</td>
+            </tr>
+            <tr class="severity-high">
+                <td><a href="#Web_Server_Misconfigurations_and_Insecure_Policies_Identified_by_Nikto">Web Server Misconfigurations and Insecure Policies Identified by Nikto</a></td>
+                <td>High</td>
+                <td>Server Misconfiguration</td>
+                <td>7.7</td>
+            </tr>
+            <tr class="severity-high">
+                <td><a href="#Exposed_Backup_Files_Reveal_Source_Code_and_Configurations">Exposed Backup Files Reveal Source Code and Configurations</a></td>
+                <td>High</td>
+                <td>Sensitive File Exposure</td>
+                <td>7.5</td>
+            </tr>
+            <tr class="severity-critical">
+                <td><a href="#Time-Based_Blind_SQL_Injection_Enables_Data_Exfiltration">Time-Based Blind SQL Injection Enables Data Exfiltration</a></td>
+                <td>Critical</td>
+                <td>Blind SQL Injection</td>
+                <td>9.4</td>
+            </tr>
+            <tr class="severity-high">
+                <td><a href="#Weak_Credentials_Permit_Unauthorized_Access">Weak Credentials Permit Unauthorized Access</a></td>
+                <td>High</td>
+                <td>Weak Authentication</td>
+                <td>8.8</td>
+            </tr>
+            <tr class="severity-medium">
+                <td><a href="#Missing_Content_Security_Policy_Increases_Injection_Risk">Missing Content Security Policy Increases Injection Risk</a></td>
+                <td>Medium</td>
+                <td>Missing Security Control</td>
+                <td>6.4</td>
+            </tr>
+            <tr class="severity-high">
+                <td><a href="#Cross-Site_Request_Forgery_(CSRF)_Protections_Missing_Across_Forms">Cross-Site Request Forgery (CSRF) Protections Missing Across Forms</a></td>
+                <td>High</td>
+                <td>CSRF</td>
+                <td>7.5</td>
+            </tr>
+            <tr class="severity-high">
+                <td><a href="#Path_Traversal_via_File_Parameter_Allows_Local_File_Read">Path Traversal via File Parameter Allows Local File Read</a></td>
+                <td>High</td>
+                <td>Path Traversal</td>
+                <td>7.5</td>
+            </tr>
+            <tr class="severity-medium">
+                <td><a href="#Missing_HTTP_Security_Headers_Reduce_Browser_Protections">Missing HTTP Security Headers Reduce Browser Protections</a></td>
+                <td>Medium</td>
+                <td>Insecure Headers</td>
+                <td>4.8</td>
+            </tr>
+            <tr class="severity-critical">
+                <td><a href="#SQL_Injection_Vulnerabilities_Allow_Direct_Database_Manipulation">SQL Injection Vulnerabilities Allow Direct Database Manipulation</a></td>
+                <td>Critical</td>
+                <td>SQL Injection</td>
+                <td>9.4</td>
+            </tr>
+        </tbody>
+    </table>
+    </div>
+
+    <div class="detailed-info">
+    <h3>Vulnerability Details</h3>
+
+    <!-- 1: Directory Path Traversal -->
+    <div id="Directory_Path_Traversal_Exposes_Sensitive_Paths_and_Metadata" class="vuln-card anchor">
+        <div class="vuln-header">
+        <h4 class="vuln-title">Directory Path Traversal Exposes Sensitive Paths and Metadata</h4>
+        <div class="vuln-meta">
+            <span class="badge">Type: Directory Path Traversal</span>
+            <span class="badge">OWASP Severity: Medium</span>
+            <span class="badge">CVSS v3.1: 5.9</span>
+        </div>
+        </div>
+        <div class="vuln-body">
+        <div class="vsection">
+            <h5>Description</h5>
+            <p>Directory paths and version control remnants are accessible, revealing internal structure and files. Attackers can enumerate directories and harvest metadata or sensitive artifacts, aiding deeper exploitation.</p>
+            <p class="muted">Typical vectors include directly requesting known administrative or versioning paths and probing for common files such as crossdomain.xml, clientaccesspolicy.xml, and CVS directories.</p>
+            <p class="muted">This aligns with OWASP A05:2021 – Security Misconfiguration, as improper access restrictions expose files and directories that should not be publicly reachable.</p>
+        </div>
+        <div class="vsection">
+            <h5>Affected Targets</h5>
+            <p class="dot">http://testphp.vulnweb.com/CVS/Entries (200 OK)</p>
+            <p class="dot">http://testphp.vulnweb.com/crossdomain.xml (200 OK)</p>
+            <p class="dot">http://testphp.vulnweb.com/clientaccesspolicy.xml (200 OK)</p>
+        </div>
+        <div class="vsection">
+            <h5>Impact</h5>
+            <p class="dot">Information disclosure about internal file structure and versioning.</p>
+            <p class="dot">Potential exposure of credentials, repository paths, or sensitive comments.</p>
+            <p class="dot">Facilitates targeted attacks (e.g., identifying entry points for injection or LFI).</p>
+            <p class="dot">Increases success likelihood of automated reconnaissance and exploitation.</p>
+        </div>
+        <div class="vsection">
+            <h5>Suggested Fix</h5>
+            <p class="dot">1. Block direct access to administrative and version control directories at the web server (nginx) level.</p>
+            <p class="dot">2. Remove legacy files (CVS/*, *.bak, *.zip) from the webroot; keep them outside deploy paths.</p>
+            <p class="dot">3. Implement a deny-by-default policy and explicit allowlists for served files and directories.</p>
+        </div>
+        <div class="vsection">
+            <h5>Proof of Concept (Non-Destructive)</h5>
+            <p><strong>Step 1:</strong> Request known sensitive directories/files.</p>
+            <pre>GET /CVS/Entries HTTP/1.1
+Host: testphp.vulnweb.com</pre>
+            <p><strong>Step 2:</strong> Observe successful responses.</p>
+            <pre>HTTP/1.1 200 OK
+Content-Length: 1
+
+""</pre>
+            <p><strong>Step 3:</strong> Inspect wildcard policy files.</p>
+            <pre>GET /crossdomain.xml HTTP/1.1
+Host: testphp.vulnweb.com</pre>
+            <p><strong>Step 4:</strong> Record findings.</p>
+            <pre>{
+  "endpoint": "/crossdomain.xml",
+  "status": 200,
+  "risk": "Wildcard policy allows any domain"
+}</pre>
+            <p class="muted">Observation: Multiple sensitive files (CVS metadata, policy files) are accessible over HTTP without authentication.</p>
+        </div>
+        </div>
+    </div>
+
+    <!-- 2: XSS -->
+    <div id="Multiple_Cross-Site_Scripting_(XSS)_Vulnerabilities_Enable_Script_Injection" class="vuln-card anchor">
+        <div class="vuln-header">
+        <h4 class="vuln-title">Multiple Cross-Site Scripting (XSS) Vulnerabilities Enable Script Injection</h4>
+        <div class="vuln-meta">
+            <span class="badge">Type: XSS</span>
+            <span class="badge">OWASP Severity: High</span>
+            <span class="badge">CVSS v3.1: 8.3</span>
+        </div>
+        </div>
+        <div class="vuln-body">
+        <div class="vsection">
+            <h5>Description</h5>
+            <p>User-controlled inputs are reflected/processed without proper output encoding, enabling execution of attacker-supplied JavaScript in the victim’s browser.</p>
+            <p class="muted">Attackers inject payloads via GET/POST parameters (e.g., searchFor, cat, artist, pic) or form fields (guestbook, signup), leading to script execution.</p>
+            <p class="muted">Maps to OWASP A03:2021 – Injection and A07:2021 – Identification and Authentication Failures when combined with session theft.</p>
+        </div>
+        <div class="vsection">
+            <h5>Affected Targets</h5>
+            <p class="dot">GET http://testphp.vulnweb.com/listproducts.php?cat=&lt;script&gt;prompt(5000/200)&lt;/script&gt;</p>
+            <p class="dot">GET http://testphp.vulnweb.com/product.php?pic=&lt;script&gt;prompt(5000/200)&lt;/script&gt;</p>
+            <p class="dot">POST http://testphp.vulnweb.com/guestbook.php (name payload)</p>
+        </div>
+        <div class="vsection">
+            <h5>Impact</h5>
+            <p class="dot">Session hijacking via document.cookie theft.</p>
+            <p class="dot">Credential harvesting or CSRF chaining through injected scripts.</p>
+            <p class="dot">Defacement and malicious redirection.</p>
+            <p class="dot">Privilege escalation if admin sessions are targeted.</p>
+        </div>
+        <div class="vsection">
+            <h5>Suggested Fix</h5>
+            <p class="dot">1. Implement context-aware output encoding (HTML, attribute, JavaScript contexts) and input validation.</p>
+            <p class="dot">2. Enforce a strict Content-Security-Policy (script-src 'self'; object-src 'none'; base-uri 'none').</p>
+            <p class="dot">3. Sanitize inputs server-side and use frameworks’ auto-escaping templates; reject/encode dangerous characters.</p>
+        </div>
+        <div class="vsection">
+            <h5>Proof of Concept (Non-Destructive)</h5>
+            <p><strong>Step 1:</strong> Trigger reflected XSS via GET parameter.</p>
+            <pre>GET /listproducts.php?artist=%3Cscript%3Eprompt(5000/200)%3C/script%3E HTTP/1.1
+Host: testphp.vulnweb.com</pre>
+            <p><strong>Step 2:</strong> Trigger XSS via POST.</p>
+            <pre>POST /guestbook.php HTTP/1.1
+Host: testphp.vulnweb.com
+Content-Type: application/x-www-form-urlencoded
+
+name=%3Cscript%3Eprompt(1)%3C%2Fscript%3E&amp;submit=submit</pre>
+            <p><strong>Step 3:</strong> Observe script execution dialog.</p>
+            <pre>{
+  "endpoint": "/listproducts.php",
+  "payload": "&lt;script&gt;prompt(25)&lt;/script&gt;",
+  "browser_observation": "Prompt dialog rendered"
+}</pre>
+            <p><strong>Step 4:</strong> Confirm lack of output encoding in response.</p>
+            <pre>HTTP/1.1 200 OK
+Content-Type: text/html
+
+... &lt;div&gt;&lt;script&gt;prompt(25)&lt;/script&gt;&lt;/div&gt; ...</pre>
+            <p class="muted">Observation: Reflected payloads are returned unencoded; no CSP or X-XSS-Protection headers present.</p>
+        </div>
+        </div>
+    </div>
+
+    <!-- 3: Nikto -->
+    <div id="Web_Server_Misconfigurations_and_Insecure_Policies_Identified_by_Nikto" class="vuln-card anchor">
+        <div class="vuln-header">
+        <h4 class="vuln-title">Web Server Misconfigurations and Insecure Policies Identified by Nikto</h4>
+        <div class="vuln-meta">
+            <span class="badge">Type: Server Misconfiguration</span>
+            <span class="badge">OWASP Severity: High</span>
+            <span class="badge">CVSS v3.1: 7.7</span>
+        </div>
+        </div>
+        <div class="vuln-body">
+        <div class="vsection">
+            <h5>Description</h5>
+            <p>Nikto identified missing security headers, wildcard policy files, and technology disclosures that increase attack surface.</p>
+            <p class="muted">Issues include missing X-Frame-Options, X-Content-Type-Options, and permissive crossdomain/clientaccesspolicy files.</p>
+            <p class="muted">This is OWASP A05:2021 – Security Misconfiguration, reflecting weak hardening and insecure defaults.</p>
+        </div>
+        <div class="vsection">
+            <h5>Affected Targets</h5>
+            <p class="dot">http://testphp.vulnweb.com/ (security headers missing)</p>
+            <p class="dot">http://testphp.vulnweb.com/crossdomain.xml (wildcard)</p>
+            <p class="dot">http://testphp.vulnweb.com/clientaccesspolicy.xml (wildcard)</p>
+        </div>
+        <div class="vsection">
+            <h5>Impact</h5>
+            <p class="dot">Clickjacking risk without framing protections.</p>
+            <p class="dot">MIME sniffing leading to content-type confusion attacks.</p>
+            <p class="dot">Broader origin access due to wildcard cross-domain policies.</p>
+            <p class="dot">Technology fingerprinting aids tailored exploits.</p>
+        </div>
+        <div class="vsection">
+            <h5>Suggested Fix</h5>
+            <p class="dot">1. Add strict headers: X-Frame-Options DENY or CSP frame-ancestors; X-Content-Type-Options: nosniff.</p>
+            <p class="dot">2. Remove or strictly scope crossdomain.xml and clientaccesspolicy.xml (no wildcards).</p>
+            <p class="dot">3. Suppress technology banners (server tokens) and standardize secure defaults in nginx.</p>
+        </div>
+        <div class="vsection">
+            <h5>Proof of Concept (Non-Destructive)</h5>
+            <p><strong>Step 1:</strong> Review Nikto output.</p>
+            <pre>Server: nginx/1.19.0
+/: X-Frame-Options header is not present.
+/: X-Content-Type-Options header is not set.
+/crossdomain.xml contains a full wildcard entry.</pre>
+            <p><strong>Step 2:</strong> Validate via curl.</p>
+            <pre>curl -I http://testphp.vulnweb.com/</pre>
+            <p><strong>Step 3:</strong> Confirm missing headers.</p>
+            <pre>HTTP/1.1 200 OK
+Server: nginx/1.19.0
+X-Frame-Options: (absent)
+X-Content-Type-Options: (absent)</pre>
+            <p><strong>Step 4:</strong> Record risk.</p>
+            <pre>{
+  "headers_missing": ["X-Frame-Options","X-Content-Type-Options"],
+  "policy_files": ["crossdomain.xml","clientaccesspolicy.xml"]
+}</pre>
+            <p class="muted">Observation: Multiple misconfigurations corroborated by both automated scan and manual header review.</p>
+        </div>
+        </div>
+    </div>
+
+    <!-- 4: Backup Files -->
+    <div id="Exposed_Backup_Files_Reveal_Source_Code_and_Configurations" class="vuln-card anchor">
+        <div class="vuln-header">
+        <h4 class="vuln-title">Exposed Backup Files Reveal Source Code and Configurations</h4>
+        <div class="vuln-meta">
+            <span class="badge">Type: Sensitive File Exposure</span>
+            <span class="badge">OWASP Severity: High</span>
+            <span class="badge">CVSS v3.1: 7.5</span>
+        </div>
+        </div>
+        <div class="vuln-body">
+        <div class="vsection">
+            <h5>Description</h5>
+            <p>Backup artifacts within the webroot (e.g., .bak, .zip) are directly downloadable, potentially exposing source code, credentials, or internal logic.</p>
+            <p class="muted">Attackers routinely brute-force common backup filenames to exfiltrate sensitive code and config files.</p>
+            <p class="muted">Maps to OWASP A01:2021 – Broken Access Control and A02:2021 – Cryptographic Failures when secrets are included.</p>
+        </div>
+        <div class="vsection">
+            <h5>Affected Targets</h5>
+            <p class="dot">http://testphp.vulnweb.com/index.bak</p>
+            <p class="dot">http://testphp.vulnweb.com/index.zip</p>
+            <p class="dot">http://testphp.vulnweb.com/index.php (source counterpart)</p>
+        </div>
+        <div class="vsection">
+            <h5>Impact</h5>
+            <p class="dot">Disclosure of source code and business logic.</p>
+            <p class="dot">Exposure of credentials, keys, or API tokens embedded in code.</p>
+            <p class="dot">Facilitates further exploitation (e.g., SQLi, RCE) via code insights.</p>
+            <p class="dot">Loss of intellectual property.</p>
+        </div>
+        <div class="vsection">
+            <h5>Suggested Fix</h5>
+            <p class="dot">1. Remove backup files from web-accessible locations; store securely outside webroot.</p>
+            <p class="dot">2. Enforce server deny rules for backup extensions (*.bak, *.zip, *.old) if present.</p>
+            <p class="dot">3. Integrate CI/CD checks to prevent deployment of backup artifacts.</p>
+        </div>
+        <div class="vsection">
+            <h5>Proof of Concept (Non-Destructive)</h5>
+            <p><strong>Step 1:</strong> Request backup file.</p>
+            <pre>GET /index.bak HTTP/1.1
+Host: testphp.vulnweb.com</pre>
+            <p><strong>Step 2:</strong> Confirm successful download.</p>
+            <pre>HTTP/1.1 200 OK
+Content-Type: application/octet-stream</pre>
+            <p><strong>Step 3:</strong> Repeat for archive.</p>
+            <pre>GET /index.zip HTTP/1.1
+Host: testphp.vulnweb.com</pre>
+            <p><strong>Step 4:</strong> Log evidence.</p>
+            <pre>{
+  "endpoints": ["/index.bak","/index.zip"],
+  "risk": "Source disclosure"
+}</pre>
+            <p class="muted">Observation: Backup artifacts served without authentication or extension-based deny rules.</p>
+        </div>
+        </div>
+    </div>
+
+    <!-- 5: Blind SQLi -->
+    <div id="Time-Based_Blind_SQL_Injection_Enables_Data_Exfiltration" class="vuln-card anchor">
+        <div class="vuln-header">
+        <h4 class="vuln-title">Time-Based Blind SQL Injection Enables Data Exfiltration</h4>
+        <div class="vuln-meta">
+            <span class="badge">Type: Blind SQL Injection</span>
+            <span class="badge">OWASP Severity: Critical</span>
+            <span class="badge">CVSS v3.1: 9.4</span>
+        </div>
+        </div>
+        <div class="vuln-body">
+        <div class="vsection">
+            <h5>Description</h5>
+            <p>Parameters are concatenated into SQL queries without parameterization, allowing time-delay payloads (e.g., SLEEP) to alter database execution and infer data.</p>
+            <p class="muted">Attackers use boolean/time-based payloads in GET/POST parameters to enumerate schemas and exfiltrate data without direct error messages.</p>
+            <p class="muted">Maps to OWASP A03:2021 – Injection. Blind SQLi is high-impact even without verbose errors.</p>
+        </div>
+        <div class="vsection">
+            <h5>Affected Targets</h5>
+            <p class="dot">GET /artists.php?artist=sleep(7)%231</p>
+            <p class="dot">GET /product.php?pic=sleep(7)%231</p>
+            <p class="dot">POST /userinfo.php (uname/pass with sleep(7))</p>
+        </div>
+        <div class="vsection">
+            <h5>Impact</h5>
+            <p class="dot">Unauthorized read/write of database contents.</p>
+            <p class="dot">Credential disclosure and account takeover.</p>
+            <p class="dot">Potential RCE via SQL functions or file write (DBMS-dependent).</p>
+            <p class="dot">Data integrity and availability impact due to query manipulation.</p>
+        </div>
+        <div class="vsection">
+            <h5>Suggested Fix</h5>
+            <p class="dot">1. Use parameterized queries/prepared statements for all database access.</p>
+            <p class="dot">2. Apply strict server-side validation and least-privilege DB accounts.</p>
+            <p class="dot">3. Implement centralized ORM/DAO layers and input sanitization patterns.</p>
+        </div>
+        <div class="vsection">
+            <h5>Proof of Concept (Non-Destructive)</h5>
+            <p><strong>Step 1:</strong> Send time-based payload.</p>
+            <pre>GET /listproducts.php?cat=sleep%287%29%231 HTTP/1.1
+Host: testphp.vulnweb.com</pre>
+            <p><strong>Step 2:</strong> Measure response delay (~7s).</p>
+            <pre>{
+  "endpoint": "/listproducts.php",
+  "payload": "sleep(7)#",
+  "observed_delay_ms": 7000
+}</pre>
+            <p><strong>Step 3:</strong> Confirm via POST parameter.</p>
+            <pre>POST /userinfo.php HTTP/1.1
+Host: testphp.vulnweb.com
+Content-Type: application/x-www-form-urlencoded
+
+uname=%27+or+sleep%287%29%231&amp;pass=Letm3in_</pre>
+            <p><strong>Step 4:</strong> Conclude injection present.</p>
+            <pre>HTTP/1.1 200 OK
+X-Timing: delayed ≈7000ms</pre>
+            <p class="muted">Observation: Consistent, reproducible delays across multiple parameters confirm time-based blind SQL injection.</p>
+        </div>
+        </div>
+    </div>
+
+    <!-- 6: Weak Credentials -->
+    <div id="Weak_Credentials_Permit_Unauthorized_Access" class="vuln-card anchor">
+        <div class="vuln-header">
+        <h4 class="vuln-title">Weak Credentials Permit Unauthorized Access</h4>
+        <div class="vuln-meta">
+            <span class="badge">Type: Weak Authentication</span>
+            <span class="badge">OWASP Severity: High</span>
+            <span class="badge">CVSS v3.1: 8.8</span>
+        </div>
+        </div>
+        <div class="vuln-body">
+        <div class="vsection">
+            <h5>Description</h5>
+            <p>Accounts accept trivial credentials (e.g., test/test), enabling unauthorized access via simple guessing.</p>
+            <p class="muted">Attackers exploit predictable defaults to pivot into higher privileges or sensitive data.</p>
+            <p class="muted">Relates to OWASP A07:2021 – Identification and Authentication Failures.</p>
+        </div>
+        <div class="vsection">
+            <h5>Affected Targets</h5>
+            <p class="dot">POST http://testphp.vulnweb.com/userinfo.php (via /login.php)</p>
+            <p class="dot">Login endpoint accepting username=test</p>
+            <p class="dot">Password field accepting password=test</p>
+        </div>
+        <div class="vsection">
+            <h5>Impact</h5>
+            <p class="dot">Unauthorized access to user data and sessions.</p>
+            <p class="dot">Privilege escalation if shared credentials exist.</h5>
+            <p class="dot">Data manipulation and reputational damage.</p>
+            <p class="dot">Compliance violations due to weak authentication controls.</p>
+        </div>
+        <div class="vsection">
+            <h5>Suggested Fix</h5>
+            <p class="dot">1. Enforce strong password policy and block common credentials.</p>
+            <p class="dot">2. Implement account lockout, MFA, and credential stuffing protections.</p>
+            <p class="dot">3. Remove default/demo accounts from production; continuous credential hygiene checks.</p>
+        </div>
+        <div class="vsection">
+            <h5>Proof of Concept (Non-Destructive)</h5>
+            <p><strong>Step 1:</strong> Submit known weak credential pair.</p>
+            <pre>POST /userinfo.php HTTP/1.1
+Host: testphp.vulnweb.com
+Content-Type: application/x-www-form-urlencoded
+Referer: http://testphp.vulnweb.com/login.php
+
+uname=test&amp;pass=test</pre>
+            <p><strong>Step 2:</strong> Observe authentication success.</p>
+            <pre>{
+  "username": "test",
+  "result": "login accepted",
+  "http_status": 200
+}</pre>
+            <p><strong>Step 3:</strong> Verify session creation.</p>
+            <pre>Set-Cookie: PHPSESSID=...</pre>
+            <p><strong>Step 4:</strong> Note risk.</p>
+            <pre>{"risk":"Default/weak credentials provide immediate access"}</pre>
+            <p class="muted">Observation: The application accepts test/test without additional verification or MFA.</p>
+        </div>
+        </div>
+    </div>
+
+    <!-- 7: Missing CSP -->
+    <div id="Missing_Content_Security_Policy_Increases_Injection_Risk" class="vuln-card anchor">
+        <div class="vuln-header">
+        <h4 class="vuln-title">Missing Content Security Policy Increases Injection Risk</h4>
+        <div class="vuln-meta">
+            <span class="badge">Type: Missing Security Control</span>
+            <span class="badge">OWASP Severity: Medium</span>
+            <span class="badge">CVSS v3.1: 6.4</span>
+        </div>
+        </div>
+        <div class="vuln-body">
+        <div class="vsection">
+            <h5>Description</h5>
+            <p>No Content-Security-Policy (CSP) header is set on the main page, weakening browser-side defenses against XSS and injection.</p>
+            <p class="muted">Without CSP, any reflected/stored payload can freely execute and load external resources.</p>
+            <p class="muted">Maps to OWASP A05:2021 – Security Misconfiguration and strengthens XSS impact.</p>
+        </div>
+        <div class="vsection">
+            <h5>Affected Targets</h5>
+            <p class="dot">GET http://testphp.vulnweb.com/ (no CSP)</p>
+            <p class="dot">All descendant pages inheriting same headers</p>
+            <p class="dot">Dynamic endpoints rendering user input</p>
+        </div>
+        <div class="vsection">
+            <h5>Impact</h5>
+            <p class="dot">Increased success rate and severity of XSS attacks.</p>
+            <p class="dot">Loading of untrusted scripts from external origins.</p>
+            <p class="dot">Data exfiltration via attacker-controlled endpoints.</p>
+            <p class="dot">Reduced ability to mitigate supply-chain script risks.</p>
+        </div>
+        <div class="vsection">
+            <h5>Suggested Fix</h5>
+            <p class="dot">1. Deploy a strict CSP: default-src 'self'; script-src 'self'; object-src 'none'; base-uri 'none'.</p>
+            <p class="dot">2. Gradually refine using report-only, then enforce once violations are addressed.</p>
+            <p class="dot">3. Remove inline event handlers or add nonces/hashes for essential inline scripts.</p>
+        </div>
+        <div class="vsection">
+            <h5>Proof of Concept (Non-Destructive)</h5>
+            <p><strong>Step 1:</strong> Fetch headers.</p>
+            <pre>curl -I http://testphp.vulnweb.com/</pre>
+            <p><strong>Step 2:</strong> Confirm absence of CSP.</p>
+            <pre>HTTP/1.1 200 OK
+Content-Security-Policy: (absent)</pre>
+            <p><strong>Step 3:</strong> Correlate with XSS findings.</p>
+            <pre>{
+  "csp_present": false,
+  "xss_findings": true
+}</pre>
+            <p><strong>Step 4:</strong> Conclude elevated risk due to missing CSP.</p>
+            <pre>{"risk":"XSS impact amplified without CSP"}</pre>
+            <p class="muted">Observation: The site lacks CSP while multiple XSS vectors exist, compounding risk.</p>
+        </div>
+        </div>
+    </div>
+
+    <!-- 8: CSRF -->
+    <div id="Cross-Site_Request_Forgery_(CSRF)_Protections_Missing_Across_Forms" class="vuln-card anchor">
+        <div class="vuln-header">
+        <h4 class="vuln-title">Cross-Site Request Forgery (CSRF) Protections Missing Across Forms</h4>
+        <div class="vuln-meta">
+            <span class="badge">Type: CSRF</span>
+            <span class="badge">OWASP Severity: High</span>
+            <span class="badge">CVSS v3.1: 7.5</span>
+        </div>
+        </div>
+        <div class="vuln-body">
+        <div class="vsection">
+            <h5>Description</h5>
+            <p>Critical state-changing endpoints lack anti-CSRF tokens, allowing attackers to forge requests using an authenticated user’s browser.</p>
+            <p class="muted">Common vectors include hidden forms or malicious links that submit POST requests (e.g., add to cart, signup, guestbook).</p>
+            <p class="muted">Maps to OWASP A01:2021 – Broken Access Control and A05:2021 – Security Misconfiguration.</p>
+        </div>
+        <div class="vsection">
+            <h5>Affected Targets</h5>
+            <p class="dot">POST /cart.php (addcart)</p>
+            <p class="dot">POST /guestbook.php (message submission)</p>
+            <p class="dot">POST /secured/newuser.php (account creation)</p>
+        </div>
+        <div class="vsection">
+            <h5>Impact</h5>
+            <p class="dot">Unauthorized state changes (cart manipulation, account creation).</p>
+            <p class="dot">Data tampering and spam content insertion.</p>
+            <p class="dot">Potential account takeover when chained with XSS or weak auth.</p>
+            <p class="dot">Reputation damage from automated CSRF campaigns.</p>
+        </div>
+        <div class="vsection">
+            <h5>Suggested Fix</h5>
+            <p class="dot">1. Implement per-request anti-CSRF tokens tied to user sessions.</p>
+            <p class="dot">2. Enforce SameSite=strict cookies and verify Origin/Referer headers.</p>
+            <p class="dot">3. Require re-auth/MFA for high-risk actions; use idempotency keys.</p>
+        </div>
+        <div class="vsection">
+            <h5>Proof of Concept (Non-Destructive)</h5>
+            <p><strong>Step 1:</strong> Submit state-changing POST without token.</p>
+            <pre>POST /cart.php HTTP/1.1
+Host: testphp.vulnweb.com
+Content-Type: application/x-www-form-urlencoded
+
+price=10000&amp;addcart=6</pre>
+            <p><strong>Step 2:</strong> Observe 200 OK and action success.</p>
+            <pre>{
+  "csrf_token_present": false,
+  "status": "accepted",
+  "http_status": 200
+}</pre>
+            <p><strong>Step 3:</strong> Repeat on other endpoints.</p>
+            <pre>POST /guestbook.php HTTP/1.1
+Host: testphp.vulnweb.com
+Content-Type: application/x-www-form-urlencoded
+
+name=anonymous&amp;text=Hi%20there!&amp;submit=add+message</pre>
+            <p><strong>Step 4:</strong> Conclude missing CSRF protections.</p>
+            <pre>{"result":"No token required across forms"}</pre>
+            <p class="muted">Observation: No anti-CSRF token validation; actions succeed solely with cookies.</p>
+        </div>
+        </div>
+    </div>
+
+    <!-- 9: Path Traversal (LFI) -->
+    <div id="Path_Traversal_via_File_Parameter_Allows_Local_File_Read" class="vuln-card anchor">
+        <div class="vuln-header">
+        <h4 class="vuln-title">Path Traversal via File Parameter Allows Local File Read</h4>
+        <div class="vuln-meta">
+            <span class="badge">Type: Path Traversal</span>
+            <span class="badge">OWASP Severity: High</span>
+            <span class="badge">CVSS v3.1: 7.5</span>
+        </div>
+        </div>
+        <div class="vuln-body">
+        <div class="vsection">
+            <h5>Description</h5>
+            <p>The file parameter of showimage.php is not properly validated, enabling reading of arbitrary local files (e.g., /etc/passwd).</p>
+            <p class="muted">Attackers supply crafted paths to access sensitive system files or application source.</p>
+            <p class="muted">Maps to OWASP A01:2021 – Broken Access Control and A05:2021 – Security Misconfiguration.</p>
+        </div>
+        <div class="vsection">
+            <h5>Affected Targets</h5>
+            <p class="dot">GET /showimage.php?file=%2Fetc%2Fpasswd</p>
+            <p class="dot">GET /showimage.php?file=showimage.php</p>
+            <p class="dot">GET /showimage.php?file=%2Fetc%2Fpasswd&amp;size=160</p>
+        </div>
+        <div class="vsection">
+            <h5>Impact</h5>
+            <p class="dot">Disclosure of system users and application source code.</p>
+            <p class="dot">Credential and key exposure if accessible in files.</p>
+            <p class="dot">Facilitates further exploitation and privilege escalation.</p>
+            <p class="dot">Potential remote code execution if writeable/processed files are abused.</p>
+        </div>
+        <div class="vsection">
+            <h5>Suggested Fix</h5>
+            <p class="dot">1. Enforce strict allowlist of files; map logical IDs to server-side paths.</p>
+            <p class="dot">2. Normalize and validate paths; deny absolute/relative traversal sequences.</p>
+            <p class="dot">3. Run app with least privileges; segregate static assets from system files.</p>
+        </div>
+        <div class="vsection">
+            <h5>Proof of Concept (Non-Destructive)</h5>
+            <p><strong>Step 1:</strong> Request a system file.</p>
+            <pre>GET /showimage.php?file=%2Fetc%2Fpasswd HTTP/1.1
+Host: testphp.vulnweb.com</pre>
+            <p><strong>Step 2:</strong> Observe file content in response.</p>
+            <pre>HTTP/1.1 200 OK
+
+root:x:0:0:root:/root:/bin/bash
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+...</pre>
+            <p><strong>Step 3:</strong> Request app source.</p>
+            <pre>GET /showimage.php?file=showimage.php HTTP/1.1
+Host: testphp.vulnweb.com</pre>
+            <p><strong>Step 4:</strong> Confirm disclosure.</p>
+            <pre>{"result":"Local file read successful","severity":"high"}</pre>
+            <p class="muted">Observation: No validation or canonicalization of the file parameter; raw paths are accepted.</p>
+        </div>
+        </div>
+    </div>
+
+    <!-- 10: HTTP Secure Headers -->
+    <div id="Missing_HTTP_Security_Headers_Reduce_Browser_Protections" class="vuln-card anchor">
+        <div class="vuln-header">
+        <h4 class="vuln-title">Missing HTTP Security Headers Reduce Browser Protections</h4>
+        <div class="vuln-meta">
+            <span class="badge">Type: Insecure Headers</span>
+            <span class="badge">OWASP Severity: Medium</span>
+            <span class="badge">CVSS v3.1: 4.8</span>
+        </div>
+        </div>
+        <div class="vuln-body">
+        <div class="vsection">
+            <h5>Description</h5>
+            <p>Key headers (X-Frame-Options, X-XSS-Protection, X-Content-Type-Options, Strict-Transport-Security) are not set, leaving clients vulnerable to common browser-based attacks.</p>
+            <p class="muted">Attackers may leverage clickjacking, MIME sniffing, and unencrypted transport to increase attack success.</p>
+            <p class="muted">Maps to OWASP A05:2021 – Security Misconfiguration.</p>
+        </div>
+        <div class="vsection">
+            <h5>Affected Targets</h5>
+            <p class="dot">GET http://testphp.vulnweb.com/ (headers absent)</p>
+            <p class="dot">All HTTP endpoints on the domain</p>
+            <p class="dot">Any page served without TLS (no HSTS possible)</p>
+        </div>
+        <div class="vsection">
+            <h5>Impact</h5>
+            <p class="dot">Clickjacking attacks via iframe embedding.</p>
+            <p class="dot">Content-type confusion and XSS via MIME sniffing.</p>
+            <p class="dot">Downgrade/Man-in-the-Middle due to lack of HSTS and TLS support.</p>
+            <p class="dot">Overall reduced browser-side security posture.</p>
+        </div>
+        <div class="vsection">
+            <h5>Suggested Fix</h5>
+            <p class="dot">1. Set X-Frame-Options: DENY or CSP frame-ancestors; X-Content-Type-Options: nosniff.</p>
+            <p class="dot">2. Enable X-XSS-Protection (legacy) and primarily rely on CSP.</p>
+            <p class="dot">3. Migrate to HTTPS and enable HSTS (Strict-Transport-Security) for all subdomains.</p>
+        </div>
+        <div class="vsection">
+            <h5>Proof of Concept (Non-Destructive)</h5>
+            <p><strong>Step 1:</strong> Inspect response headers.</p>
+            <pre>curl -I http://testphp.vulnweb.com/</pre>
+            <p><strong>Step 2:</strong> Note missing values.</p>
+            <pre>{
+  "X-Frame-Options": null,
+  "X-Content-Type-Options": null,
+  "X-XSS-Protection": null,
+  "Strict-Transport-Security": null
+}</pre>
+            <p><strong>Step 3:</strong> Confirm no TLS support.</p>
+            <pre>SSL/TLS: Not supported (TimeoutError)</pre>
+            <p><strong>Step 4:</strong> Conclude misconfiguration.</p>
+            <pre>{"risk":"Browser protections disabled or weakened"}</pre>
+            <p class="muted">Observation: Headers consistently absent across repeated requests.</p>
+        </div>
+        </div>
+    </div>
+
+    <!-- 11: SQL Injection -->
+    <div id="SQL_Injection_Vulnerabilities_Allow_Direct_Database_Manipulation" class="vuln-card anchor">
+        <div class="vuln-header">
+        <h4 class="vuln-title">SQL Injection Vulnerabilities Allow Direct Database Manipulation</h4>
+        <div class="vuln-meta">
+            <span class="badge">Type: SQL Injection</span>
+            <span class="badge">OWASP Severity: Critical</span>
+            <span class="badge">CVSS v3.1: 9.4</span>
+        </div>
+        </div>
+        <div class="vuln-body">
+        <div class="vsection">
+            <h5>Description</h5>
+            <p>Multiple parameters are vulnerable to SQL injection, enabling attackers to modify queries, exfiltrate data, or bypass authentication.</p>
+            <p class="muted">Typical vectors include quote-breaking and special characters (e.g., 1%BF%27%22() in GET/POST parameters) that change SQL logic.</p>
+            <p class="muted">Maps to OWASP A03:2021 – Injection. Direct SQLi is severe and often leads to full database compromise.</p>
+        </div>
+        <div class="vsection">
+            <h5>Affected Targets</h5>
+            <p class="dot">GET /artists.php?artist=1%C2%BF%27%22%28</p>
+            <p class="dot">GET /product.php?pic=6%C2%BF%27%22%28</p>
+            <p class="dot">POST /userinfo.php (uname/pass injection)</p>
+        </div>
+        <div class="vsection">
+            <h5>Impact</h5>
+            <p class="dot">Extraction and manipulation of database records.</p>
+            <p class="dot">Authentication bypass and privilege escalation.</p>
+            <p class="dot">Potential filesystem access via DBMS functions.</p>
+            <p class="dot">Service disruption and data integrity loss.</p>
+        </div>
+        <div class="vsection">
+            <h5>Suggested Fix</h5>
+            <p class="dot">1. Use parameterized queries and ORM-safe APIs throughout.</p>
+            <p class="dot">2. Validate and sanitize all inputs; enforce type constraints.</p>
+            <p class="dot">3. Apply least privilege to DB users; enable WAF rules for injection signatures.</p>
+        </div>
+        <div class="vsection">
+            <h5>Proof of Concept (Non-Destructive)</h5>
+            <p><strong>Step 1:</strong> Send test payloads that introduce special characters.</p>
+            <pre>GET /search.php?test=query%C2%BF%27%22%28 HTTP/1.1
+Host: testphp.vulnweb.com</pre>
+            <p><strong>Step 2:</strong> Use POST with crafted params.</p>
+            <pre>POST /search.php?test=query HTTP/1.1
+Host: testphp.vulnweb.com
+Content-Type: application/x-www-form-urlencoded
+
+searchFor=default%C2%BF%27%22%28&amp;goButton=go</pre>
+            <p><strong>Step 3:</strong> Observe DB error/behavioral anomalies.</p>
+            <pre>{
+  "endpoint": "/artists.php",
+  "payload": "1%BF'\"(",
+  "observation": "SQL error or altered query path"
+}</pre>
+            <p><strong>Step 4:</strong> Conclude direct SQL injection presence.</p>
+            <pre>HTTP/1.1 200 OK
+X-Observation: Parameter influenced SQL parsing</pre>
+            <p class="muted">Observation: Multiple endpoints accept untrusted input directly into SQL statements, confirming SQLi.</p>
+        </div>
+        </div>
+    </div>
+
+    </div>
+</div>
+</div>
+</body>
+</html>
